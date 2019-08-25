@@ -25,7 +25,15 @@ router.post("/api/register", async (req, res) => {
   }
 });
 
-// customer middleware that validates the credentials passed in headers
+router.post("/api/login", validate, (req, res) => {
+  let { username } = req.headers;
+  //validate method looks up the user
+  res.status(200).json({ message: `Welcome ${username}!` });
+
+  // any errors will be handled by validate() as well.
+});
+
+// custom middleware that validates the credentials passed in headers
 function validate(req, res, next) {
   const { username, password } = req.headers;
 
