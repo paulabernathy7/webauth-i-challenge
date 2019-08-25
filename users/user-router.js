@@ -4,15 +4,6 @@ const Users = require("./user-model");
 
 const bcrypt = require("bcryptjs");
 
-router.get("/api/users", validate, async (req, res) => {
-  try {
-    const users = await Users.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ message: "cannot find user" });
-  }
-});
-
 router.post("/api/register", async (req, res) => {
   const user = req.body;
   const hash = bcrypt.hashSync(user.password, 10);
@@ -26,11 +17,20 @@ router.post("/api/register", async (req, res) => {
 });
 
 router.post("/api/login", validate, (req, res) => {
-  let { username } = req.headers;
+  let { username, password } = req.body;
   //validate method looks up the user
   res.status(200).json({ message: `Welcome ${username}!` });
 
   // any errors will be handled by validate() as well.
+});
+
+router.get("/api/users", validate, async (req, res) => {
+  try {
+    const users = await Users.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "cannot find user" });
+  }
 });
 
 // custom middleware that validates the credentials passed in headers
@@ -48,6 +48,8 @@ function validate(req, res, next) {
         // that is stored...
         if (user && bcrypt.compareSync(password, user.password)) {
           // go to the next middleware handler
+          req.session.loggedin = true;
+
           next();
         } else {
           // otherwise, respond with a 401
@@ -63,7 +65,7 @@ function validate(req, res, next) {
     // if either the username or the password are not supplied in
     // the request headers, respond with a 400.
   } else {
-    res.status(400).json({ message: "no credentials provided" });
+    res.status(400).json({ message: "You shall not pass!" });
   }
 }
 
