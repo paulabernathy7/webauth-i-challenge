@@ -16,12 +16,25 @@ router.post("/api/register", async (req, res) => {
   }
 });
 
-router.post("/api/login", validate, (req, res) => {
+router.post("/api/login", (req, res) => {
   let { username, password } = req.body;
-  //validate method looks up the user
-  res.status(200).json({ message: `Welcome ${username}!` });
 
-  // any errors will be handled by validate() as well.
+  req.session.loggedin = false;
+
+  Users.findBy({ username })
+    .first()
+    .then(user => {
+      if (user && bcrypt.compareSync(password, user.password)) {
+        req.session.user = user;
+        console.log(req.session);
+        res.status(200).json({ message: `Welcome ${username}!` });
+      } else {
+        res.status(401).json({ message: "You shall not pass" });
+      }
+    })
+    .catch(error => {
+      res.status(500).json(error.message);
+    });
 });
 
 router.get("/api/users", validate, async (req, res) => {
@@ -48,7 +61,6 @@ function validate(req, res, next) {
         // that is stored...
         if (user && bcrypt.compareSync(password, user.password)) {
           // go to the next middleware handler
-          req.session.loggedin = true;
 
           next();
         } else {

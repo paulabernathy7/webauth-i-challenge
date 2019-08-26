@@ -17,7 +17,7 @@ const sessionOptions = {
     secure: false,
     httpOnly: true
   },
-  resave: false,
+  resave: true,
   saveUninitialized: false,
 
   store: new knexSessionStore({
@@ -25,7 +25,7 @@ const sessionOptions = {
     tablename: "sessions",
     sidfieldname: "sid",
     createtable: true,
-    clearInterval: 1000 * 60 * 60
+    clearInterval: 1000 * 60
   })
 };
 
