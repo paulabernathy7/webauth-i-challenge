@@ -17,7 +17,7 @@ router.post("/api/register", async (req, res) => {
 });
 
 router.post("/api/login", (req, res) => {
-  let { username, password } = req.body;
+  const { username, password } = req.body;
 
   req.session.loggedin = false;
 
@@ -25,7 +25,7 @@ router.post("/api/login", (req, res) => {
     .first()
     .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
-        req.session.user = user;
+        req.session.loggedin = true;
         console.log(req.session);
         res.status(200).json({ message: `Welcome ${username}!` });
       } else {
@@ -37,7 +37,7 @@ router.post("/api/login", (req, res) => {
     });
 });
 
-router.get("/api/users", validate, async (req, res) => {
+router.get("/api/users", restricted, async (req, res) => {
   try {
     const users = await Users.find();
     res.json(users);
@@ -80,5 +80,17 @@ function validate(req, res, next) {
     res.status(400).json({ message: "You shall not pass!" });
   }
 }
+
+function restricted(req, res, next) {
+  if (req.session && req.session.loggedin === true) {
+    next();
+  } else {
+    res.status(401).json({
+      message: "No sir!"
+    });
+  }
+}
+//simply check to see if the session object exists
+// if it does, check for the .loggedin === true condition.
 
 module.exports = router;
